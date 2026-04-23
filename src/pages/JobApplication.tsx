@@ -21,12 +21,12 @@ export function JobApplication() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
-  
+
   const [selectedJob, setSelectedJob] = useState<string>(preselectedJobId);
   const [firstName, setFirstName] = useState(user?.prenom || "");
   const [lastName, setLastName] = useState(user?.nom || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState("+212 ");
   const [city, setCity] = useState("");
   const [lastExperience, setLastExperience] = useState("");
   const [totalYears, setTotalYears] = useState("");
@@ -61,8 +61,8 @@ export function JobApplication() {
 
     try {
       let extractedData = null;
-      const isDocx = selectedFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
-                    selectedFile.name.toLowerCase().endsWith('.docx');
+      const isDocx = selectedFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        selectedFile.name.toLowerCase().endsWith('.docx');
       const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith('.pdf');
 
       if (isPdf) {
@@ -80,7 +80,7 @@ export function JobApplication() {
         setIsParsing(false);
         return;
       }
-      
+
       if (extractedData) {
         console.log("Data extracted from CV:", extractedData);
         if (extractedData.firstName) setFirstName(extractedData.firstName);
@@ -92,7 +92,7 @@ export function JobApplication() {
         if (extractedData.totalYearsExperience) setTotalYears(extractedData.totalYearsExperience.toString());
         if (extractedData.linkedinUrl) setLinkedin(extractedData.linkedinUrl);
         if (extractedData.summary) setSummary(extractedData.summary);
-        
+
         addNotification("Analyse terminée ! Vos informations ont été pré-remplies.", "success");
         // Slight delay to let the user see the success state before moving
         setTimeout(() => {
@@ -102,7 +102,7 @@ export function JobApplication() {
         console.warn("Gemini returned null for CV parsing.");
         addNotification("L'analyse IA n'a pas pu extraire de données. Veuillez remplir le formulaire manuellement.", "warning");
       }
-    } catch(err) {
+    } catch (err) {
       console.error("Critical error in handleFile:", err);
       addNotification("Erreur lors de la lecture ou de l'analyse du fichier.", "warning");
     } finally {
@@ -120,25 +120,25 @@ export function JobApplication() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Find the job title
     const jobOffer = jobs.find(j => j.id.toString() === selectedJob);
     const roleName = jobOffer ? jobOffer.title : "Candidature Spontanée";
     const candidateName = `${firstName} ${lastName}`.trim() || 'Candidat Anonyme';
-    
+
     // Simulate API delay
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
-      
+
       addNotification(`Dossier de ${candidateName} transmis avec succès.`, "success");
 
       // Redirect to Interview
       setTimeout(() => {
-        navigate("/app/interview", { 
-          state: { 
-            candidateName, 
-            roleName, 
+        navigate("/app/interview", {
+          state: {
+            candidateName,
+            roleName,
             jobId: selectedJob,
             email: email,
             personalInfo: {
@@ -151,7 +151,7 @@ export function JobApplication() {
               experienceYears: parseInt(totalYears) || 0,
               lastRole: lastExperience
             }
-          } 
+          }
         });
       }, 3000);
     }, 1500);
@@ -172,10 +172,10 @@ export function JobApplication() {
 
       <AnimatePresence mode="wait">
         {isSuccess ? (
-          <motion.div 
+          <motion.div
             key="success"
-            initial={{ opacity: 0, scale: 0.95 }} 
-            animate={{ opacity: 1, scale: 1 }} 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             className="bg-white p-16 rounded-[3rem] text-center border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
           >
             <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-green-100">
@@ -191,7 +191,7 @@ export function JobApplication() {
             </div>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             key="form"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -221,64 +221,64 @@ export function JobApplication() {
                   {/* ÉTAPE 1 : Upload CV */}
                   {step === 1 && (
                     <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                       
-                       <div className="bg-violet-50 border border-violet-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-                         <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center shrink-0">
-                           <Sparkles className="w-5 h-5 text-violet-600" />
-                         </div>
-                         <div>
-                           <h4 className="text-sm font-bold text-violet-900 mb-1">Remplissage IA Magique</h4>
-                           <p className="text-xs text-violet-700 font-medium leading-relaxed">
-                             Déposez votre CV ici ! Notre IA va lire votre document en une fraction de seconde et pré-remplir l'intégralité du formulaire pour vous.
-                           </p>
-                         </div>
-                       </div>
-                       
-                       <div 
+
+                      <div className="bg-violet-50 border border-violet-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+                        <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center shrink-0">
+                          <Sparkles className="w-5 h-5 text-violet-600" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-violet-900 mb-1">Remplissage IA Magique</h4>
+                          <p className="text-xs text-violet-700 font-medium leading-relaxed">
+                            Déposez votre CV ici ! Notre IA va lire votre document en une fraction de seconde et pré-remplir l'intégralité du formulaire pour vous.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
                         onClick={() => !isParsing && fileInputRef.current?.click()}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={handleDrop}
                         className={`border-2 border-dashed rounded-[2rem] p-12 text-center transition-all duration-300 ${isParsing ? 'opacity-50 cursor-wait' : 'cursor-pointer'} ${file ? 'border-violet-500 bg-violet-50/50' : 'border-gray-200 hover:border-violet-400 bg-gray-50/50 hover:bg-violet-50/30'}`}
-                       >
-                         <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => e.target.files && handleFile(e.target.files[0])} />
-                         
-                         {file ? (
-                           <div className="flex flex-col items-center">
-                             <div className="w-20 h-20 bg-violet-100 rounded-[1.5rem] flex items-center justify-center mb-6 border border-violet-200 shadow-sm">
-                               {isParsing ? (
-                                 <div className="animate-spin w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full" />
-                               ) : (
-                                 <FileText className="w-10 h-10 text-violet-600" />
-                               )}
-                             </div>
-                             <h3 className="font-bold text-gray-900 text-xl">{file.name}</h3>
-                             <p className="text-sm text-gray-500 mt-2 font-medium">Poids: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                             
-                             {!isParsing && (
-                               <button type="button" className="text-[10px] font-black uppercase tracking-widest text-violet-600 border border-violet-200 bg-white px-4 py-2 mt-6 rounded-lg hover:bg-violet-600 hover:text-white transition-all shadow-sm" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
-                                 Changer la matrice
-                               </button>
-                             )}
-                           </div>
-                         ) : (
-                           <div className="flex flex-col items-center justify-center py-6">
-                             <div className="w-20 h-20 bg-white border border-gray-100 shadow-sm rounded-[1.5rem] flex items-center justify-center mb-6">
-                               <UploadCloud className="w-10 h-10 text-gray-400" />
-                             </div>
-                             <h3 className="font-bold text-gray-900 text-lg mb-2">Cliquez ou glissez votre CV ici</h3>
-                             <p className="text-sm text-gray-500 font-medium">Formats validés: PDF, DOCX (Max 5 MB)</p>
-                           </div>
-                         )}
-                       </div>
+                      >
+                        <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => e.target.files && handleFile(e.target.files[0])} />
+
+                        {file ? (
+                          <div className="flex flex-col items-center">
+                            <div className="w-20 h-20 bg-violet-100 rounded-[1.5rem] flex items-center justify-center mb-6 border border-violet-200 shadow-sm">
+                              {isParsing ? (
+                                <div className="animate-spin w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full" />
+                              ) : (
+                                <FileText className="w-10 h-10 text-violet-600" />
+                              )}
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-xl">{file.name}</h3>
+                            <p className="text-sm text-gray-500 mt-2 font-medium">Poids: {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+
+                            {!isParsing && (
+                              <button type="button" className="text-[10px] font-black uppercase tracking-widest text-violet-600 border border-violet-200 bg-white px-4 py-2 mt-6 rounded-lg hover:bg-violet-600 hover:text-white transition-all shadow-sm" onClick={(e) => { e.stopPropagation(); setFile(null); }}>
+                                Changer la matrice
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-6">
+                            <div className="w-20 h-20 bg-white border border-gray-100 shadow-sm rounded-[1.5rem] flex items-center justify-center mb-6">
+                              <UploadCloud className="w-10 h-10 text-gray-400" />
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-lg mb-2">Cliquez ou glissez votre CV ici</h3>
+                            <p className="text-sm text-gray-500 font-medium">Formats validés: PDF, DOCX (Max 5 MB)</p>
+                          </div>
+                        )}
+                      </div>
                     </motion.div>
                   )}
-                  
+
                   {/* ÉTAPE 2 : Informations Personnelles */}
                   {step === 2 && (
                     <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><User className="w-3.5 h-3.5 text-violet-500"/> Prénom</label>
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><User className="w-3.5 h-3.5 text-violet-500" /> Prénom</label>
                           <input required type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="Votre prénom" />
                         </div>
                         <div className="space-y-3">
@@ -290,11 +290,11 @@ export function JobApplication() {
                           <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="nom@example.com" />
                         </div>
                         <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><Phone className="w-3.5 h-3.5 text-violet-500"/> Téléphone</label>
-                          <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="+33 6 00 00 00 00" />
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><Phone className="w-3.5 h-3.5 text-violet-500" /> Téléphone</label>
+                          <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="+212 6 00 00 00 00" />
                         </div>
                         <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><MapPin className="w-3.5 h-3.5 text-violet-500"/> Ville</label>
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><MapPin className="w-3.5 h-3.5 text-violet-500" /> Ville</label>
                           <input required type="text" value={city} onChange={e => setCity(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="Ex: Casablanca" />
                         </div>
                       </div>
@@ -304,76 +304,76 @@ export function JobApplication() {
                   {/* ÉTAPE 3 : Expériences */}
                   {step === 3 && (
                     <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                       <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><GraduationCap className="w-3.5 h-3.5 text-violet-500"/> Dernière expérience marquante</label>
-                          <input required type="text" value={lastExperience} onChange={e => setLastExperience(e.target.value)} placeholder="Ex: Data Engineer CTO chez StartupTech" className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div className="space-y-3">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Expérience Totale</label>
-                            <div className="relative">
-                              <input required type="number" min="0" value={totalYears} onChange={e => setTotalYears(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="Ex: 5" />
-                              <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">Ans</span>
-                            </div>
-                          </div>
-                          <div className="space-y-3">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">LinkedIn / Portfolio</label>
-                            <input type="url" value={linkedin} onChange={e => setLinkedin(e.target.value)} placeholder="https://linkedin.com/in/..." className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" />
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><GraduationCap className="w-3.5 h-3.5 text-violet-500" /> Dernière expérience marquante</label>
+                        <input required type="text" value={lastExperience} onChange={e => setLastExperience(e.target.value)} placeholder="Ex: Data Engineer CTO chez StartupTech" className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Expérience Totale</label>
+                          <div className="relative">
+                            <input required type="number" min="0" value={totalYears} onChange={e => setTotalYears(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="Ex: 5" />
+                            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">Ans</span>
                           </div>
                         </div>
                         <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Résumé & Motivations</label>
-                          <textarea required rows={4} value={summary} onChange={e => setSummary(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900 resize-none placeholder-gray-300" placeholder="Parlez-nous brièvement de ce qui vous anime..." />
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">LinkedIn / Portfolio</label>
+                          <input type="url" value={linkedin} onChange={e => setLinkedin(e.target.value)} placeholder="https://linkedin.com/in/..." className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" />
                         </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Résumé & Motivations</label>
+                        <textarea required rows={4} value={summary} onChange={e => setSummary(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900 resize-none placeholder-gray-300" placeholder="Parlez-nous brièvement de ce qui vous anime..." />
+                      </div>
                     </motion.div>
                   )}
 
                   {/* ÉTAPE 4 : Détails Professionnels Final */}
                   {step === 4 && (
                     <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><Briefcase className="w-3.5 h-3.5 text-violet-500" /> Rôle convoité</label>
+                        <select required value={selectedJob} onChange={e => setSelectedJob(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900 appearance-none cursor-pointer">
+                          <option value="">Sélectionnez un poste...</option>
+                          {jobs.filter(job => job.status === 'OPEN').map(job => (
+                            <option key={job.id} value={job.id}>{job.title} - {job.dept}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 pl-1"><Briefcase className="w-3.5 h-3.5 text-violet-500"/> Rôle convoité</label>
-                          <select required value={selectedJob} onChange={e => setSelectedJob(e.target.value)} className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900 appearance-none cursor-pointer">
-                            <option value="">Sélectionnez un poste...</option>
-                            {jobs.filter(job => job.status === 'OPEN').map(job => (
-                              <option key={job.id} value={job.id}>{job.title} - {job.dept}</option>
-                            ))}
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Disponibilité</label>
+                          <select required className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900 appearance-none cursor-pointer">
+                            <option value="immediate">Immédiate</option>
+                            <option value="1_month">1 Mois</option>
+                            <option value="3_months">3 Mois (Préavis)</option>
                           </select>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div className="space-y-3">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Disponibilité</label>
-                            <select required className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900 appearance-none cursor-pointer">
-                              <option value="immediate">Immédiate</option>
-                              <option value="1_month">1 Mois</option>
-                              <option value="3_months">3 Mois (Préavis)</option>
-                            </select>
-                          </div>
-                          <div className="space-y-3">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Prétentions Salariales</label>
-                            <div className="relative">
-                              <input required type="number" step="1000" className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="Annuel / Mensuel" />
-                              <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">MAD</span>
-                            </div>
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] pl-1">Prétentions Salariales</label>
+                          <div className="relative">
+                            <input required type="number" step="1000" className="w-full px-5 py-4 bg-gray-50/50 border border-gray-200 rounded-2xl focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all font-medium text-gray-900" placeholder="Annuel / Mensuel" />
+                            <span className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">MAD</span>
                           </div>
                         </div>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
                 {/* Navigation Buttons */}
                 <div className="flex items-center justify-between mt-12 pt-8 border-t border-gray-100">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={prevStep}
                     className={`flex items-center gap-2 px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors ${step === 1 ? 'opacity-0 pointer-events-none' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
                   >
                     <ChevronLeft className="w-4 h-4" />
                     Retour
                   </button>
-                  
-                  <button 
-                    type="submit" 
+
+                  <button
+                    type="submit"
                     disabled={isSubmitting || isParsing || (step === 1 && !file)}
                     className="group flex items-center gap-3 px-10 py-5 bg-black text-white font-bold uppercase tracking-widest text-[10px] rounded-2xl hover:bg-violet-600 transition-all disabled:opacity-50 shadow-xl hover:shadow-[0_8px_30px_rgb(124,58,237,0.3)] disabled:shadow-none disabled:hover:bg-black"
                   >
