@@ -6,11 +6,12 @@ import { useNotifications } from "../contexts/NotificationsContext";
 import { processCandidateByAI } from "../lib/gemini";
 import * as htmlToImage from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { Zap } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 export function Evaluations() {
   const { evaluations, updateEvaluation, approveEvaluation, rejectEvaluation } = useEvaluations();
   const { addNotification } = useNotifications();
+  const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<number>(0);
   const [evalNotes, setEvalNotes] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
@@ -58,7 +59,7 @@ export function Evaluations() {
       comments: evalNotes
     });
 
-    addNotification(`L'IA NewGen Rh a terminé l'analyse de ${selectedEval.name} (Score global: ${aiResult.globalScore}/100)`, "info");
+    addNotification(`L'IA Evolia a terminé l'analyse de ${selectedEval.name} (Score global: ${aiResult.globalScore}/100)`, "info");
 
     if (finalStatus === "APPROVED") {
       addNotification(`Félicitations ! Le candidat ${selectedEval.name} est automatiquement validé pour l'étape suivante.`, "success");
@@ -103,7 +104,7 @@ export function Evaluations() {
       addNotification("Document d'entretien téléchargé avec succès", "success");
     } catch (error) {
       console.error('Error generating PDF:', error);
-      addNotification("Erreur lors du téléchargement du PDF", "error");
+      addNotification("Erreur lors du téléchargement du PDF", "warning");
     } finally {
       setIsDownloading(false);
     }
@@ -214,19 +215,26 @@ export function Evaluations() {
                <textarea 
                  value={evalNotes}
                  onChange={(e) => setEvalNotes(e.target.value)}
+                 disabled={user?.role === 'SUPER_ADMIN'}
                  placeholder="Ex: Bonne aisance technique sur React, mais semble un peu rigide sur l'architecture. Très bon fit culturel avec l'équipe..."
                  className="flex-1 w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-black/5 text-sm"
                />
 
                <div className="flex justify-end mt-6">
-                 <button 
-                   onClick={generateAIEvaluation}
-                   disabled={!evalNotes.trim()}
-                   className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white px-6 py-3 rounded-xl font-semibold shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
-                 >
-                   <BrainCircuit className="w-4 h-4" />
-                   Générer Scoring & Résumé IA
-                 </button>
+                 {user?.role !== 'SUPER_ADMIN' ? (
+                   <button 
+                     onClick={generateAIEvaluation}
+                     disabled={!evalNotes.trim()}
+                     className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white px-6 py-3 rounded-xl font-semibold shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+                   >
+                     <BrainCircuit className="w-4 h-4" />
+                     Générer Scoring & Résumé IA
+                   </button>
+                 ) : (
+                   <div className="bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-semibold text-sm">
+                     Mode Lecture Seule
+                   </div>
+                 )}
                </div>
              </div>
           )}
@@ -318,20 +326,28 @@ export function Evaluations() {
                 
                 {selectedEval.status === "COMPLETED" && (
                   <div className="flex items-center gap-4">
-                    <button 
-                      onClick={() => rejectEvaluation(selectedEval.id)}
-                      className="bg-white border border-gray-200 px-8 py-4 rounded-2xl text-sm font-bold text-red-500 shadow-sm hover:bg-red-50 hover:border-red-100 transition-all flex items-center gap-2 active:scale-95"
-                    >
-                      <X className="w-4 h-4" />
-                      Refuser
-                    </button>
-                    <button 
-                      onClick={() => approveEvaluation(selectedEval.id)}
-                      className="bg-[#0B1E36] px-10 py-4 rounded-2xl text-sm font-bold text-white shadow-xl hover:shadow-[#0B1E36]/40 hover:bg-[#16335A] transition-all flex items-center gap-2 active:scale-95"
-                    >
-                      <Check className="w-4 h-4" />
-                      Approuver le candidat
-                    </button>
+                    {user?.role !== 'SUPER_ADMIN' ? (
+                      <>
+                        <button 
+                          onClick={() => rejectEvaluation(selectedEval.id)}
+                          className="bg-white border border-gray-200 px-8 py-4 rounded-2xl text-sm font-bold text-red-500 shadow-sm hover:bg-red-50 hover:border-red-100 transition-all flex items-center gap-2 active:scale-95"
+                        >
+                          <X className="w-4 h-4" />
+                          Refuser
+                        </button>
+                        <button 
+                          onClick={() => approveEvaluation(selectedEval.id)}
+                          className="bg-[#0B1E36] px-10 py-4 rounded-2xl text-sm font-bold text-white shadow-xl hover:shadow-[#0B1E36]/40 hover:bg-[#16335A] transition-all flex items-center gap-2 active:scale-95"
+                        >
+                          <Check className="w-4 h-4" />
+                          Approuver le candidat
+                        </button>
+                      </>
+                    ) : (
+                      <div className="bg-gray-100 text-gray-500 px-6 py-3 rounded-xl border border-gray-200 text-sm font-bold opacity-80">
+                        Mode Lecture Seule
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -353,12 +369,12 @@ export function Evaluations() {
           {/* Header */}
           <div className="flex justify-between items-start mb-16 border-b-2 border-[#0B1E36] pb-8">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Zap className="w-7 h-7 text-white fill-white" />
+              <div className="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-7 h-7 text-white fill-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-black tracking-tighter text-[#0B1E36]">NewGen <span className="text-indigo-600">Rh</span></h1>
-                <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400">AI Intelligence Core</p>
+                <h1 className="text-3xl font-black tracking-tighter text-[#0B1E36] uppercase">Evo<span className="text-violet-600">lia</span></h1>
+                <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400">AI Analytics</p>
               </div>
             </div>
             <div className="text-right">
@@ -455,7 +471,7 @@ export function Evaluations() {
           {/* Footer Branding */}
           <div className="mt-24 pt-8 border-t border-gray-100 flex justify-between items-center opacity-40">
             <span className="text-[10px] font-bold uppercase tracking-widest">Document Confidentiel - Réservé aux RH</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest">Powered by NewGen Rh AI</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Powered by Evolia AI</span>
           </div>
 
         </div>

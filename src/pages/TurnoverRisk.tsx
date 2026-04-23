@@ -79,7 +79,7 @@ export function TurnoverRisk() {
         <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6">
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Temps de rétention moy.</h3>
           <div className="text-4xl font-extrabold text-gray-700">3.2 ans</div>
-          <p className="text-xs text-gray-400 mt-2 font-medium">NewGen Rh Global</p>
+          <p className="text-xs text-gray-400 mt-2 font-medium">Evolia Global Intelligence</p>
         </div>
       </div>
 

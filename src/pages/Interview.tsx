@@ -18,11 +18,12 @@ export function Interview() {
   const { addEvaluation } = useEvaluations();
   const { addNotification } = useNotifications();
   
-  const { candidateName, roleName, jobId, email } = location.state || {
+  const { candidateName, roleName, jobId, email, personalInfo } = location.state || {
     candidateName: "Candidat",
     roleName: "Poste",
     jobId: "",
-    email: ""
+    email: "",
+    personalInfo: null
   };
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -105,7 +106,7 @@ export function Interview() {
         setMessages(prev => [...prev, {
           id: "done",
           role: "bot",
-          content: "Merci énormément pour vos réponses. Notre IA NewGen Rh est en train d'analyser cet entretien. Veuillez patienter un instant..."
+          content: "Merci énormément pour vos réponses. Notre IA Evolia est en train d'analyser cet entretien. Veuillez patienter un instant..."
         }]);
         setIsBotTyping(false);
         setInterviewComplete(true);
@@ -139,7 +140,9 @@ export function Interview() {
       cultureScore: analysis.cultureScore,
       strengths: analysis.strengths,
       weaknesses: analysis.weaknesses,
-      recommendation: analysis.recommendation
+      recommendation: analysis.recommendation,
+      personalInfo: personalInfo,
+      approvalLevel: finalStatus === "APPROVED" ? 0 : undefined
     });
 
     addNotification(`Entretien terminé pour ${candidateName}. Global Score: ${analysis.globalScore}/100. Statut: ${finalStatus}`, "success");
@@ -156,7 +159,7 @@ export function Interview() {
             <BrainCircuit className="text-white w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight">Assistant Recrutement NewGen Rh</h1>
+            <h1 className="text-white font-bold text-lg leading-tight">Assistant Recrutement Evolia</h1>
             <p className="text-[#8C5E3C] text-[10px] font-bold uppercase tracking-widest">IA en session d'interview</p>
           </div>
         </div>

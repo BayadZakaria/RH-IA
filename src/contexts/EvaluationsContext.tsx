@@ -17,6 +17,19 @@ export type EvalState = {
   docGenerated?: boolean;
   jobId?: string;
   candidateEmail?: string;
+  personalInfo?: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    city: string;
+    linkedin?: string;
+    birthDate?: string;
+    situation?: string;
+    dependents?: number;
+    experienceYears?: number;
+    lastRole?: string;
+    summary?: string;
+  };
   approvalLevel?: number; // 0=FONC, 1=HIER, 2=RH, 3=DG, 4=VALIDÉ
   approvalMetrics?: {
     fonc?: { date: string, traceId: string, name: string },

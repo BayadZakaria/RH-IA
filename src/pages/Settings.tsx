@@ -17,7 +17,7 @@ export function Settings() {
     grade: user?.grade || '',
   });
 
-  const SETTINGS_TABS = [
+  const ALL_SETTINGS_TABS = [
     { label: 'Profil personnel', icon: UserIcon },
     { label: 'Sécurité & Accès', icon: Shield },
     { label: 'Notifications', icon: Bell },
@@ -25,6 +25,10 @@ export function Settings() {
     { label: 'Mon Organisation', icon: Building },
     { label: 'Apparence', icon: Palette },
   ];
+
+  const SETTINGS_TABS = user?.role === 'SUPER_ADMIN' 
+    ? ALL_SETTINGS_TABS
+    : ALL_SETTINGS_TABS.filter(tab => !['API & Clés (Dev)', 'Mon Organisation', 'Apparence'].includes(tab.label));
 
   const handleProfileUpdate = (e: FormEvent) => {
     e.preventDefault();
@@ -52,7 +56,7 @@ export function Settings() {
     <div className="max-w-5xl mx-auto pb-12 space-y-8">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Paramètres</h1>
-        <p className="text-gray-500 mt-2">Gérez les préférences de votre plateforme NewGen Rh.</p>
+        <p className="text-gray-500 mt-2">Gérez les préférences de votre plateforme Evolia AI.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -138,16 +142,18 @@ export function Settings() {
                         onChange={e => setProfileData({...profileData, email: e.target.value})} 
                       />
                     </div>
-                    <div className="col-span-2 space-y-2">
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Grade Fonctionnel</label>
-                      <input 
-                        type="text" 
-                        required
-                        className="form-input bg-white focus:bg-white" 
-                        value={profileData.grade} 
-                        onChange={e => setProfileData({...profileData, grade: e.target.value})} 
-                      />
-                    </div>
+                    {user?.role !== 'CANDIDATE' && (
+                      <div className="col-span-2 space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Grade Fonctionnel</label>
+                        <input 
+                          type="text" 
+                          required
+                          className="form-input bg-white focus:bg-white" 
+                          value={profileData.grade} 
+                          onChange={e => setProfileData({...profileData, grade: e.target.value})} 
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-end pt-8 mt-6 border-t border-gray-100">

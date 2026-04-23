@@ -2,6 +2,64 @@ import { GoogleGenAI, Type, Schema } from '@google/genai';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+export async function parseResume(source: { base64?: string, mimeType?: string, text?: string }) {
+  try {
+    console.log("Starting CV Parsing with Gemini...", source.text ? "from text" : "from file");
+    
+    const prompt = `Extract the candidate's core information from this resume/CV document.
+    Return the output strictly in the following JSON schema. Do not invent information. If an element like phone or city is missing, leave it as an empty string. If experience years cannot be accurately determined, use 0.`;
+
+    const contents: any[] = [];
+    
+    if (source.base64 && source.mimeType) {
+      contents.push({
+        inlineData: {
+          data: source.base64,
+          mimeType: source.mimeType
+        }
+      });
+    }
+    
+    if (source.text) {
+      contents.push({ text: `Resume Text Content:\n${source.text}` });
+    }
+    
+    contents.push({ text: prompt });
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: { parts: contents },
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            firstName: { type: Type.STRING },
+            lastName: { type: Type.STRING },
+            email: { type: Type.STRING },
+            phone: { type: Type.STRING },
+            city: { type: Type.STRING },
+            lastExperience: { type: Type.STRING },
+            totalYearsExperience: { type: Type.INTEGER },
+            linkedinUrl: { type: Type.STRING },
+            summary: { type: Type.STRING, description: "A 2 sentence summary of the candidate's profile" }
+          },
+          required: ["firstName", "lastName", "email", "phone", "city", "lastExperience", "totalYearsExperience", "linkedinUrl", "summary"],
+        }
+      }
+    });
+
+    if (response.text) {
+      const data = JSON.parse(response.text);
+      console.log("CV Parsing successful:", data);
+      return data;
+    }
+  } catch (err) {
+    console.error("Gemini Resume Parsing error details:", err);
+  }
+  return null;
+}
+
 export async function processCandidateByAI(candidateName: string, roleName: string, backgroundNotes: string) {
   try {
     const prompt = `You are an expert technical recruiter AI system. 
@@ -13,7 +71,7 @@ export async function processCandidateByAI(candidateName: string, roleName: stri
     Provide your output as a JSON object matching this schema. You must determine if the candidate should be automatically approved (advanced to hiring workflow).`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.1-pro-preview',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -60,7 +118,7 @@ export async function generateInterviewQuestions(candidateName: string, roleName
     Return only a JSON array of strings.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -99,7 +157,7 @@ export async function analyzeInterview(candidateName: string, roleName: string, 
     Return a JSON object with scores, strengths, weaknesses, and a final recommendation.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

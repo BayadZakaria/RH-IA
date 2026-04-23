@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { ArrowLeft, Zap } from "lucide-react";
+import { BrandLogo } from "../components/BrandLogo";
 
 export function Login() {
   const { login, registerCandidate } = useAuth();
@@ -64,11 +65,10 @@ export function Login() {
         className="max-w-md w-full bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 p-8 sm:p-12 overflow-hidden"
       >
         <div className="mb-8 text-center flex flex-col items-center">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
-              <Zap className="w-6 h-6 text-white fill-white" />
-            </div>
-            <span className="font-bold text-3xl tracking-tight text-gray-900">NewGen <span className="text-indigo-600">Rh</span></span>
+          <div className="mb-4">
+            <Link to="/" className="hover:opacity-80 transition-opacity">
+              <BrandLogo size="lg" />
+            </Link>
           </div>
           
           {/* Tabs */}
@@ -91,7 +91,7 @@ export function Login() {
             {activeTab === 'login' ? 'Espace Professionnel' : 'Nouveau Candidat / Société'}
           </h1>
           <p className="text-sm text-gray-500 mt-2">
-            {activeTab === 'login' ? 'Accès réservé aux administrateurs et décideurs' : 'Rejoignez NewGen Rh et démarrez votre carrière'}
+            {activeTab === 'login' ? 'Accès réservé aux administrateurs et décideurs' : 'Rejoignez Evolia et démarrez votre carrière'}
           </p>
         </div>
 
@@ -166,14 +166,6 @@ export function Login() {
             </form>
           </motion.div>
         </AnimatePresence>
-
-        {activeTab === 'login' && (
-          <div className="mt-8 text-center border-t border-gray-50 pt-8 shadow-inner bg-gray-50/50 -mx-8 -mb-8 p-8">
-            <p className="text-[11px] text-gray-400 font-mono">
-              [DEMO] ADMIN: bayadzakaria6@gmail.com / adminadmin1
-            </p>
-          </div>
-        )}
       </motion.div>
     </div>
   );

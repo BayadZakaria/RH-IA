@@ -1,6 +1,20 @@
-<<<<<<< HEAD
-bayad zakaria 
-my new apps 
-=======
-BAYAD ZAKARIA APPS
->>>>>>> 3552c29d629d91cd7b865a3a1215ea64165095c2
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
+
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/6ffb1157-dafd-439b-8d1f-66f3853a1f3d
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

@@ -38,13 +38,15 @@ export function JobOffers() {
           <h1 className="text-3xl font-semibold tracking-tight">Postes ouverts</h1>
           <p className="text-gray-500 mt-2">Gérez les offres d'emploi visibles sur le portail public.</p>
         </div>
-        <button 
-          onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors shadow-md"
-        >
-          <Plus className="w-4 h-4" />
-          Nouvelle offre
-        </button>
+        {user?.role !== 'SUPER_ADMIN' && (
+          <button 
+            onClick={() => setShowAdd(!showAdd)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-xl text-sm font-semibold hover:bg-gray-800 transition-colors shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            Nouvelle offre
+          </button>
+        )}
       </div>
 
       <AnimatePresence>
@@ -112,7 +114,7 @@ export function JobOffers() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredJobs.map((job) => {
-              const canDelete = job.author_id === user?.id || user?.role === 'SUPER_ADMIN';
+              const canDelete = job.author_id === user?.id && user?.role !== 'SUPER_ADMIN';
 
               return (
                 <tr key={job.id} className="hover:bg-gray-50/50 transition-colors">
@@ -146,25 +148,29 @@ export function JobOffers() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      {job.status === 'OPEN' ? (
-                        <button onClick={() => closeJob(job.id)} className="text-xs font-semibold text-red-600 hover:text-red-800 transition-colors">
-                          Fermer
-                        </button>
-                      ) : (
-                        <span className="text-xs text-gray-400">Archivé</span>
-                      )}
-                      
-                      {canDelete && (
-                        <button onClick={() => {
-                          if(window.confirm('Voulez-vous vraiment supprimer définitivement cette offre ?')) {
-                            deleteJob(job.id)
-                          }
-                        }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Supprimer l'offre">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
+                    {user?.role !== 'SUPER_ADMIN' ? (
+                      <div className="flex items-center justify-end gap-3">
+                        {job.status === 'OPEN' ? (
+                          <button onClick={() => closeJob(job.id)} className="text-xs font-semibold text-red-600 hover:text-red-800 transition-colors">
+                            Fermer
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">Archivé</span>
+                        )}
+                        
+                        {canDelete && (
+                          <button onClick={() => {
+                            if(window.confirm('Voulez-vous vraiment supprimer définitivement cette offre ?')) {
+                              deleteJob(job.id)
+                            }
+                          }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Supprimer l'offre">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs italic text-gray-400">Lecture seule</span>
+                    )}
                   </td>
                 </tr>
               );

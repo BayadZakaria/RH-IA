@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Check, X, FileText, Download, Loader2, CheckCircle2, ArrowRight, UserCircle } from "lucide-react";
+import { Check, X, FileText, Download, Loader2, CheckCircle2, ArrowRight, UserCircle, Sparkles } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useEmployees } from "../contexts/EmployeesContext";
 import { useEvaluations, EvalState } from "../contexts/EvaluationsContext";
 import { useNotifications } from "../contexts/NotificationsContext";
+import { useJobs } from "../contexts/JobsContext";
 import jsPDF from "jspdf";
 import * as htmlToImage from "html-to-image";
 
@@ -14,6 +15,7 @@ export function Approvals() {
   const { evaluations, advanceApproval, rejectEvaluation } = useEvaluations();
   const { addNotification } = useNotifications();
   const { usersList, updateProfile } = useAuth();
+  const { jobs } = useJobs();
   
   const approvedCandidates = evaluations.filter(e => e.status === "APPROVED");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -25,6 +27,7 @@ export function Approvals() {
   }, [approvedCandidates, selectedId]);
 
   const selectedCandidate = approvedCandidates.find(c => c.id === selectedId);
+  const selectedJobOffer = jobs.find(j => j.id.toString() === selectedCandidate?.jobId?.toString());
 
   // 0 = en attente FONC, 1 = en attente HIER, 2 = en attente RH, 3 = en attente DG, 4 = validé
   const approvalLevel = selectedCandidate?.approvalLevel || 0;
@@ -35,11 +38,12 @@ export function Approvals() {
   const documentRef = useRef<HTMLDivElement>(null);
 
   const getWorkflowDates = () => {
+    const baseDate = selectedCandidate?.date || "19/04/2026";
     return {
-      fonc: approvalLevel >= 1 ? "19/04/2026 09:12Z" : undefined,
-      hier: approvalLevel >= 2 ? "19/04/2026 10:45Z" : undefined,
-      rh: approvalLevel >= 3 ? "20/04/2026 14:30Z" : undefined,
-      dg: approvalLevel >= 4 ? "21/04/2026 11:21Z" : undefined,
+      fonc: approvalLevel >= 1 ? `${baseDate} 09:12Z` : undefined,
+      hier: approvalLevel >= 2 ? `${baseDate} 10:45Z` : undefined,
+      rh: approvalLevel >= 3 ? `${baseDate} 14:30Z` : undefined,
+      dg: approvalLevel >= 4 ? `${baseDate} 11:21Z` : undefined,
     }
   };
   const dates = getWorkflowDates();
@@ -66,11 +70,20 @@ export function Approvals() {
   const calculateCompensation = () => {
      if (!selectedCandidate) return { base: "0,00 MAD", prime: "0,00 MAD", total: "0,00 MAD", grade: "---" };
      
-     // Base formula scaling with global score
+     // Base formula scaling with global score or job salary
+     let jobSalaryBase = 8000;
+     if (selectedJobOffer && selectedJobOffer.salary) {
+        const salaryNum = parseInt(selectedJobOffer.salary.replace(/[^0-9]/g, ''));
+        if (!isNaN(salaryNum)) jobSalaryBase = salaryNum;
+     }
+
      const techWeight = selectedCandidate.techScore || 50;
      const globalWeight = selectedCandidate.globalScore || 50;
      
-     const calculatedRawBase = 8000 + (techWeight * 60) + (globalWeight * 45);
+     // We adjust the job salary slightly based on candidate performance (+/- 10%)
+     const performanceAdjustment = (globalWeight - 70) * 50; // Every point above 70 adds 50 MAD
+     const calculatedRawBase = jobSalaryBase + performanceAdjustment;
+     
      const gradeCalculated = (globalWeight > 85) ? "55" : (globalWeight > 70) ? "54" : "53";
      const primeCalculated = (techWeight > 80) ? 2500 : 800;
 
@@ -329,11 +342,11 @@ export function Approvals() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <DataSnippet label="Nom du collaborateur" value={selectedCandidate.name} highlight />
               <DataSnippet label="Type de demande" value="Recrutement" />
-              <DataSnippet label="Date d'embauche" value="16/03/2026" />
-              <DataSnippet label="Date d'application" value="16/03/2026" />
-              <DataSnippet label="Date de naissance" value="07/08/1999" />
-              <DataSnippet label="Situation Familiale" value="Célibataire" />
-              <DataSnippet label="Personnes à charge" value="0" />
+              <DataSnippet label="Date d'embauche" value="02/05/2026" />
+              <DataSnippet label="Date d'application" value={selectedCandidate.date} />
+              <DataSnippet label="Date de naissance" value={selectedCandidate.personalInfo?.birthDate || "07/08/1999"} />
+              <DataSnippet label="Situation Familiale" value={selectedCandidate.personalInfo?.situation || (selectedCandidate.personalInfo?.dependents ? "Marié" : "Célibataire")} />
+              <DataSnippet label="Personnes à charge" value={selectedCandidate.personalInfo?.dependents?.toString() || "0"} />
             </div>
           </section>
 
@@ -341,8 +354,8 @@ export function Approvals() {
           <section>
             <h2 className="text-sm font-semibold tracking-widest uppercase text-gray-400 mb-6 border-b border-gray-100 pb-2">Informations Organisationnelles</h2>
             <div className="grid grid-cols-1 gap-4">
-              <DataRow label="Site (Succursale)" value="Siège" />
-              <DataRow label="Entité Organisationnelle" value="Administration" />
+              <DataRow label="Site (Succursale)" value={selectedJobOffer?.location || "Siège"} />
+              <DataRow label="Entité Organisationnelle" value={selectedJobOffer?.dept || "Administration"} />
               <DataRow label="Fonction" value={selectedCandidate.role} highlight />
               <DataRow label="Emploi de référence" value={`E12.10 - ${selectedCandidate.role}`} />
               <DataRow label="Type de rémunération" value="Mensuelle" />
@@ -379,8 +392,12 @@ export function Approvals() {
             <section>
               <h2 className="text-sm font-semibold tracking-widest uppercase text-gray-400 mb-6 border-b border-gray-100 pb-2">Positionnement</h2>
               <div className="space-y-2">
-                <SalaryRow label="Salaire Annuel Garanti" value="258 550 MAD" highlight />
-                <SalaryRow label="% Grille Salariale (SAG)" value="75%" />
+                <SalaryRow 
+                  label="Salaire Annuel Garanti" 
+                  value={new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(compData.rawBase * 12)} 
+                  highlight 
+                />
+                <SalaryRow label="% Grille Salariale (SAG)" value={`${80 + ((selectedCandidate.globalScore || 70) - 70) / 2}%`} />
               </div>
             </section>
           </div>
@@ -389,8 +406,8 @@ export function Approvals() {
           <section className="bg-[#fcfdf2] border border-[#ecefd2] rounded-2xl p-6">
             <h2 className="text-xs font-bold font-mono tracking-widest uppercase text-gray-400 mb-3">Commentaires RH</h2>
             <p className="text-sm leading-relaxed text-gray-700 italic">
-              Recrutement d'un {selectedCandidate.role} pour le renforcement de l'équipe (Poste budgété 2026). <br/>
-              Salaire actuel de M. {selectedCandidate.name.split(' ').slice(1).join(' ') || selectedCandidate.name} : 12k dhs NET/13 mois + prime annuelle.
+              Recrutement d'un {selectedCandidate.role} pour le renforcement de l'entité {selectedJobOffer?.dept || "Siège"} (Poste budgété 2026). <br/>
+              Analyse AI Evolia : {selectedCandidate.recommendation.split('.')[0]}. Profil jugé à {selectedCandidate.globalScore}% du fit cible.
             </p>
           </section>
 
@@ -445,7 +462,15 @@ export function Approvals() {
         <div ref={documentRef} className="bg-white p-8" style={{ width: "950px", fontFamily: "Arial, sans-serif", color: "#000" }}>
           
           <div className="flex justify-between items-end mb-1">
-            <h1 className="text-[44px] font-extrabold tracking-tighter text-black" style={{ margin: 0, padding: 0, lineHeight: 1 }}>NewGen <span className="text-indigo-600">Rh</span></h1>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white fill-white" />
+              </div>
+              <div>
+                <h1 className="text-[38px] font-black tracking-tighter text-black uppercase" style={{ margin: 0, padding: 0, lineHeight: 1 }}>Evo<span className="text-violet-600">lia</span></h1>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest -mt-0.5" style={{ margin: 0, padding: 0 }}>AI Analytics</p>
+              </div>
+            </div>
             <h2 className="text-[28px] font-light text-gray-700 tracking-wide mb-1" style={{ margin: 0, padding: 0, lineHeight: 1 }}>Demande d'Approbation RH</h2>
           </div>
           
@@ -477,12 +502,12 @@ export function Approvals() {
                 <td className="border border-black bg-[#bfbfbf] p-1 px-2 w-[25%]"></td><td className="border border-black bg-[#bfbfbf] p-1 px-2 w-[25%]"></td>
               </tr>
               <tr>
-                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Date d'embauche</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>16/03/2026</td>
-                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Personnes à charge</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>0</td>
+                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Date d'embauche</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>02/05/2026</td>
+                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Personnes à charge</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{selectedCandidate.personalInfo?.dependents || "0"}</td>
               </tr>
               <tr>
-                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Date de naissance</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>07/08/1999</td>
-                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Situation Familiale</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>Celibataire</td>
+                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Date de naissance</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{selectedCandidate.personalInfo?.birthDate || "07/08/1999"}</td>
+                <td className="border border-black bg-[#7f7f7f] text-white p-1 px-2">Situation Familiale</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{selectedCandidate.personalInfo?.situation || (selectedCandidate.personalInfo?.dependents ? "Marié" : "Célibataire")}</td>
               </tr>
             </tbody>
           </table>
@@ -493,8 +518,8 @@ export function Approvals() {
               <tr><th className="border border-black bg-[#7f7f7f] text-white p-1 font-normal w-[35%] text-left pl-2">Intitulé</th><th className="border border-black bg-[#595959] text-white p-1 font-normal w-[65%] text-center">Situation Proposée</th></tr>
             </thead>
             <tbody>
-              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Site (Succursale)</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>Siège</td></tr>
-              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Entité Organisationnelle</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>Administration</td></tr>
+              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Site (Succursale)</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{selectedJobOffer?.location || "Siège"}</td></tr>
+              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Entité Organisationnelle</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{selectedJobOffer?.dept || "Administration"}</td></tr>
               <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Fonction</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{selectedCandidate.role}</td></tr>
               <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Emploi de référence</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{`E12.10 - ${selectedCandidate.role}`}</td></tr>
               <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Type de rémunération</td><td className="border border-black p-1 px-2 italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>Mensuelle</td></tr>
@@ -548,18 +573,18 @@ export function Approvals() {
               <tr><th className="border border-black bg-[#7f7f7f] text-white p-1 font-normal w-[65%] text-center">Rubrique</th><th className="border border-black bg-[#595959] text-white p-1 font-normal w-[35%] text-center">Situation Proposée</th></tr>
             </thead>
             <tbody>
-              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Salaire Annuel Garanti</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>258 550 MAD</td></tr>
-              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">% Comparatif Grille Salariale (SAG)</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>75%</td></tr>
+              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Salaire Annuel Garanti</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(compData.rawBase * 12)}</td></tr>
+              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">% Comparatif Grille Salariale (SAG)</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{80 + ((selectedCandidate.globalScore || 70) - 70) / 2}%</td></tr>
               <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Variable Annuel Réel (Total 12 M)</td><td className="border border-black bg-[#d9d9d9] p-1 text-center italic"></td></tr>
-              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Salaire Annuel Total</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>310 260 MAD</td></tr>
-              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">% Comparatif Grille Salariale (SAT)</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>75%</td></tr>
+              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">Salaire Annuel Total</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>{new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format((compData.rawBase + 1500) * 12)}</td></tr>
+              <tr><td className="border border-black bg-[#d9d9d9] p-1 px-2">% Comparatif Grille Salariale (SAT)</td><td className="border border-black p-1 text-center italic" style={{ backgroundColor: "#e2efda", color: "#0070c0" }}>85%</td></tr>
             </tbody>
           </table>
 
           <div className="bg-[#595959] text-white p-1 text-[13px] font-bold border-2 border-black border-b-0 pl-2 mt-4">Commentaires</div>
           <div className="border-2 border-black p-2 mb-4 italic text-[12px] leading-snug" style={{ backgroundColor: "#e2efda", color: "#0070c0", minHeight: "60px" }}>
-            Recrutement d'un {selectedCandidate.role} pour le renforcement de l'équipe ( Poste budgété 2026)<br/>
-            Salaire actuel de M. {selectedCandidate.name.split(' ').slice(1).join(' ') || selectedCandidate.name} : 12k dhs NET/13 mois + prime annuelle.
+            Recrutement d'un {selectedCandidate.role} pour le renforcement de l'entité {selectedJobOffer?.dept || "Siège"} (Poste budgété 2026).<br/>
+            Analyse AI Evolia : {selectedCandidate.recommendation.split('.')[0]}. Profil jugé à {selectedCandidate.globalScore}% du fit cible.
           </div>
 
           <div className="bg-[#595959] text-white p-1 text-[13px] font-bold border-2 border-black border-b-0 pl-2 mt-2">Approbations numériques</div>
@@ -637,7 +662,7 @@ export function Approvals() {
               </div>
             </div>
           </div>
-          <div className="text-right text-[#c00000] text-[9px] italic mb-6">Modèle mis à jour au 01/11/2021</div>
+          <div className="text-right text-[#c00000] text-[9px] italic mb-6">Modèle mis à jour au 01/04/2026</div>
         </div>
       </div>
       </div>

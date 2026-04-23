@@ -56,7 +56,7 @@ export function Dashboard() {
        label: "Matching Talent", 
        text: evaluations.filter(ev => ev.globalScore > 85).length > 0 
         ? `${evaluations.filter(ev => ev.globalScore > 85).length} candidats exceptionnels détectés par le chatbot.` 
-        : "Nouveaux CV en cours d'analyse par NewGen Rh IA." 
+        : "Nouveaux CV en cours d'analyse par Evolia IA." 
     }
   ];
 
@@ -88,7 +88,7 @@ export function Dashboard() {
   
   // Chatbot State
   const [messages, setMessages] = useState<{role: 'ai'|'user', text: string}[]>([
-    { role: 'ai', text: 'Bonjour ! Je suis l\'assistant IA de NewGen Rh. Pourriez-vous me décrire brièvement la plus grande réussite de votre carrière et ce que vous en avez appris ?' }
+    { role: 'ai', text: 'Bonjour ! Je suis l\'assistant IA d\'Evolia. Pourriez-vous me décrire brièvement la plus grande réussite de votre carrière et ce que vous en avez appris ?' }
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -120,7 +120,7 @@ export function Dashboard() {
       // L'ajouter aux Évaluations pour que le directeur puisse la voir
       const fullName = user ? `${user.prenom} ${user.nom}`.trim() : 'Candidat Anonyme';
       
-      const chatTranscript = messages.map(m => `${m.role === 'ai' ? 'NewGen Rh IA' : fullName}: ${m.text}`).join('\n') + `\n${fullName}: ${inputValue}`;
+      const chatTranscript = messages.map(m => `${m.role === 'ai' ? 'Evolia IA' : fullName}: ${m.text}`).join('\n') + `\n${fullName}: ${inputValue}`;
 
       const tech = Math.floor(Math.random() * 20) + 70; // 70-90
       const culture = Math.floor(Math.random() * 20) + 75; // 75-95
@@ -238,7 +238,7 @@ export function Dashboard() {
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-gray-900 line-clamp-1">NewGen Rh Assistant IA</h2>
+                  <h2 className="font-semibold text-gray-900 line-clamp-1">Evolia Assistant IA</h2>
                   <p className="text-xs text-gray-500">{chatbotCompleted ? 'Qualification complète' : 'Pré-qualification & candidature spontanée'}</p>
                 </div>
               </div>
@@ -322,7 +322,7 @@ export function Dashboard() {
       {/* Header section */}
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Bonjour, {user?.prenom || 'Directeur'}</h1>
-        <p className="text-gray-500 mt-2">Aperçu en temps réel de l'activité RH pour NewGen Rh.</p>
+        <p className="text-gray-500 mt-2">Aperçu en temps réel de l'activité RH pour Evolia.</p>
       </div>
 
       {/* Top Stats Grid */}

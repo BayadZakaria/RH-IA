@@ -176,7 +176,7 @@ export function Employees() {
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <span className="font-medium flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-gray-400" /> {emp.grade}</span>
-                          <span className="text-xs text-gray-500 flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> {emp.department || "NewGen Rh Division"}</span>
+                          <span className="text-xs text-gray-500 flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> {emp.department || "Evolia Division"}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, FileCheck, CheckSquare, BrainCircuit, ShieldAlert, Settings, LogOut, Briefcase, Zap } from "lucide-react";
+import { LayoutDashboard, Users, FileCheck, CheckSquare, BrainCircuit, ShieldAlert, Settings, LogOut, Briefcase } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useAuth } from "../contexts/AuthContext";
+import { BrandLogo } from "./BrandLogo";
 
 export function Sidebar() {
   const location = useLocation();
@@ -42,12 +43,7 @@ export function Sidebar() {
       {/* Brand */}
       <div className="h-20 flex items-center px-8 shrink-0 mt-2">
         <Link to="/app" className="flex flex-col hover:opacity-80 transition-opacity">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100">
-              <Zap className="w-5 h-5 text-white fill-white" />
-            </div>
-            <span className="font-bold text-xl tracking-tight text-gray-900">NewGen <span className="text-indigo-600">Rh</span></span>
-          </div>
+          <BrandLogo size="sm" />
         </Link>
       </div>
 
@@ -95,6 +91,9 @@ export function Sidebar() {
             <LogOut className="w-4 h-4" />
             Déconnexion
           </button>
+        </div>
+        <div className="mt-4 px-4">
+          <p className="text-[10px] text-gray-400 font-medium italic">App created by Zakaria Bayad</p>
         </div>
       </div>
     </aside>

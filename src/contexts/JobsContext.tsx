@@ -105,6 +105,20 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         console.error('Error adding job to Supabase:', error.message);
+        
+        // Auto-recovery mechanism: If 'author_id' column is missing or schema cache is stale
+        if (error.message.includes('author_id') && error.message.includes('schema cache')) {
+          console.warn("Schema cache missing 'author_id', retrying without it. Please reload your Supabase schema cache.");
+          const fallbackPayload = { ...supabasePayload };
+          delete fallbackPayload.author_id;
+          
+          const retry = await supabase.from('jobs').insert([fallbackPayload]).select().single();
+          if (!retry.error && retry.data) {
+             setJobs(prev => [{...newJobBase, ...retry.data, author_id: currentUserId} as JobOffer, ...prev]);
+             return;
+          }
+        }
+
         // Fallback to local state so the UI doesn't break for the prototype
         const newJob: JobOffer = {
           ...newJobBase,
